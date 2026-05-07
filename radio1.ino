@@ -619,7 +619,7 @@ void handleFrequencyControl(int diff) {
     const char *rt = radio.getRdsText2A();  // returns pointer to radio-text buffer
 
     // If text pointer is null or empty, clear space
-    if ( currentMode != +MODE_FM || rt == NULL || rt[0] == '\0') {
+    if ( currentMode != MODE_FM || rt == NULL || rt[0] == '\0') {
       rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
     }
 
