@@ -12,7 +12,7 @@
 #define PIN_BT_PWR      7
 
 #define LONG_PRESS_MS 3000
-#define RDS_MAX       100
+#define RDS_MAX       150
 
 const int PIN_ENC_FREQ_A = 2;
 const int PIN_ENC_FREQ_B = 3;
@@ -184,24 +184,16 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("FOUR BAND RADIO+");
   lcd.setCursor(0, 1);
-  lcd.print("BLUETHOOT PLAYER");
+  lcd.print("BLUETOOTH PLAYER");
   delay(4360);
 
   startupStart = millis();
 
   radio.setup(5, 0);
-  delay(1060);
+  delay(600);
   radio.setFM();
   radio.setFrequency((uint16_t)(freqFM * 100));
   radio.setVolume(0);
-  delay(800);
-  radio.setVolume(5);
-  delay(400);
-  radio.setVolume(10);
-  delay(400);
-  radio.setVolume(20);
-  delay(400);
-  radio.setVolume(30);
 }
 
 void loop() {
@@ -321,12 +313,19 @@ void animateStartup() {
   for (int i = 0; i < dotCount; i++) {
     lcd.print(".");
   }
-  if (elapsed > 5000) {
+  if (elapsed > 4000) {
     startupInProgress = false;
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("RADIO MODE");
-    delay(1700);
+    radio.setVolume(5);
+    delay(400);
+    radio.setVolume(10);
+    delay(400);
+    radio.setVolume(20);
+    delay(400);
+    radio.setVolume(30);
+    delay(1100);
     lcd.clear();
     updateRadio();
   }
@@ -342,15 +341,15 @@ void handleModeButton() {
   } else if (lastState == LOW && !VOLUME && state == LOW && (!modeBtnHeld && (millis() - modeBtnPressTime > LONG_PRESS_MS))) {
     modeBtnHeld = true;
     btMode = !btMode;
-  } else if (lastState == LOW  && state == HIGH && !firstpress && !modeBtnHeld && (millis()-modeBtnPressTime < 900)) {
+  } else if (lastState == LOW  && state == HIGH && !firstpress && !modeBtnHeld && (millis()-modeBtnPressTime < 1050)) {
     firstpress = true;
-  } else if(lastState == LOW && state == HIGH && firstpress && !second_press && !modeBtnHeld && (millis()-modeBtnPressTime < 900)){
+  } else if(lastState == LOW && state == HIGH && firstpress && !second_press && !modeBtnHeld && (millis()-modeBtnPressTime < 1050)){
     second_press= true;
-  } else if(lastState == LOW && state ==HIGH && firstpress && !THIRDPRESS && second_press && !modeBtnHeld && (millis()-modeBtnPressTime < 900)){
+  } else if(lastState == LOW && state ==HIGH && firstpress && !THIRDPRESS && second_press && !modeBtnHeld && (millis()-modeBtnPressTime < 1050)){
     THIRDPRESS = true;
   } 
   
-  if (THIRDPRESS == true && !VOLUME && !modeBtnHeld && ( millis() - modeBtnPressTime < 900)){
+  if (THIRDPRESS == true && !VOLUME && !modeBtnHeld && ( millis() - modeBtnPressTime < 1100)){
     second_press= false;
     firstpress = false;
     THIRDPRESS= false;
@@ -380,10 +379,12 @@ void handleModeButton() {
           updateradioDisplay();
           break;
       }
-    } 
+    } else {
+      PREV();
+    }
   }
 
-  if (!modeBtnHeld && second_press == true && !VOLUME && ( millis() - modeBtnPressTime >900)) {
+  if (!modeBtnHeld && second_press == true && !VOLUME && ( millis() - modeBtnPressTime >1100)) {
     second_press= false;
     firstpress = false;
     if (!btMode){
@@ -410,10 +411,12 @@ void handleModeButton() {
           updateradioDisplay();
           break;
       }
+    } else {
+      NEXT();
     }
   }
 
-   if (firstpress == true && ( millis() - modeBtnPressTime >= 900) ){
+   if (firstpress == true && ( millis() - modeBtnPressTime >= 1100) ){
     firstpress = false;
     BT_PLAY_PUASE();
     mute();
@@ -441,6 +444,18 @@ if (!VOLUME && lastVolumeState == true) {
 }
 lastVolumeState = VOLUME;
   lastState = state;
+}
+
+void PREV () {
+  digitalWrite(BT_VOLUP, HIGH);
+  delay(350);
+  digitalWrite(BT_VOLUP, LOW);
+}
+
+void NEXT(){
+  digitalWrite(BT_VOLDOWN, HIGH);
+  delay(350);
+  digitalWrite(BT_VOLDOWN, LOW);
 }
 
 void mute() {
@@ -604,10 +619,9 @@ void handleFrequencyControl(int diff) {
     const char *rt = radio.getRdsText2A();  // returns pointer to radio-text buffer
 
     // If text pointer is null or empty, clear space
-    if (currentMode != MODE_FM || rt == NULL || rt[0] == '\0') {
-  rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
-}
-                
+    if ( currentMode != +MODE_FM || rt == NULL || rt[0] == '\0') {
+      rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
+    }
 
     // 3. Copy text into local buffer
     strncpy(rdsText, rt, RDS_MAX - 1);
