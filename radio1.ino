@@ -604,9 +604,10 @@ void handleFrequencyControl(int diff) {
     const char *rt = radio.getRdsText2A();  // returns pointer to radio-text buffer
 
     // If text pointer is null or empty, clear space
-    if ( !MODE_FM || rt == NULL || rt[0] == '\0') {
-      rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
-    }
+    if (currentMode != MODE_FM || rt == NULL || rt[0] == '\0') {
+  rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
+}
+                
 
     // 3. Copy text into local buffer
     strncpy(rdsText, rt, RDS_MAX - 1);
