@@ -63,7 +63,7 @@ int freqAM = 1000;
 int freqSW = 16000;
 int freqLW = 150;
 
-int volStep = 40;
+int volStep = 47;
 int lastVolStep = 0;
 int dotCount = 0;
 int scrollPos = 0;  // scrolling position
@@ -187,14 +187,10 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("BLUETOOTH PLAYER");
   delay(4360);
+  lcd.clear();
+  delay(600);
 
   startupStart = millis();
-
-  radio.setup(5, 0);
-  delay(600);
-  radio.setFM();
-  radio.setFrequency((uint16_t)(freqFM * 100));
-  radio.setVolume(0);
 }
 
 void loop() {
@@ -217,7 +213,6 @@ void loop() {
       }
     }
   }
-
   handleModeButton();
 
   if (millis() - LAST_RDS_INTERVA >= RDS_INTERVAL) {
@@ -295,10 +290,6 @@ void loop() {
 }
 
 void animateStartup() {
-  if (run) {
-    lcd.clear();
-    run = false;
-  }
 
   unsigned long now = millis();
   unsigned long elapsed = now - startupStart;
@@ -309,25 +300,37 @@ void animateStartup() {
   if (now - lastDotTime >= 300) {
     lastDotTime = now;
     dotCount = (dotCount + 1) % 4;
+    if (dotCount == 0) {
+      lcd.setCursor(9, 1);
+      lcd.print("    ");
+    }
   }
   lcd.setCursor(4, 1);
   lcd.print("RADIO");
   for (int i = 0; i < dotCount; i++) {
     lcd.print(".");
   }
+
+  if (run && (elapsed > 1500)) {
+    radio.setFM();
+    radio.setFrequency((uint16_t)(freqFM * 100));
+    radio.setVolume(0);
+    run = false;
+  }
+
   if (elapsed > 4000) {
     startupInProgress = false;
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("RADIO MODE");
-    radio.setVolume(5);
-    delay(400);
     radio.setVolume(10);
-    delay(400);
+    delay(600);
     radio.setVolume(20);
-    delay(400);
+    delay(700);
     radio.setVolume(30);
-    delay(1100);
+    delay(800);
+    radio.setVolume(40);
+    delay(600);
     lcd.clear();
     updateRadio();
   }
@@ -618,9 +621,9 @@ void updateRDS() {
 
     const char *rt = radio.getRdsText2A();  // returns pointer to radio-text buffer
 
-    // If text pointer is null or empty, scroll char
+    // If text pointer is null or empty, clear space
     if (currentMode != MODE_FM || rt == NULL || rt[0] == '\0') {
-      rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last.";
+      rt = "            Still Your Boy CHUKWUEBUKA (GOD_IS_WITH_US), Have A Blessful Day And Keep Listening To The RADIO While It Last."; // can be change to your own text
     }
 
     // 3. Copy text into local buffer
